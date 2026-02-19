@@ -3,7 +3,7 @@
 //  Caches all app assets for offline + PWA install
 // ============================================================
 
-const CACHE = 'routine-v2';
+const CACHE = 'routine-v3';
 
 const ASSETS = [
   './',
