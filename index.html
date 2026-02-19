@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Routine</title>
+
+  <!-- PWA Meta -->
+  <meta name="theme-color" content="#c8a96e" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Routine" />
+
+  <!-- Manifest + Icons -->
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <span class="app-title">Routine</span>
+  </header>
+
+  <!-- NAV TABS -->
+  <nav class="tab-nav">
+    <button class="tab active" data-tab="dashboard">Dashboard</button>
+    <button class="tab" data-tab="daily">Daily</button>
+    <button class="tab" data-tab="fixed">Fixed</button>
+    <button class="tab" data-tab="history">History</button>
+  </nav>
+
+  <!-- TAB: DASHBOARD -->
+  <div id="tab-dashboard" class="tab-content active">
+    <div class="section-header">
+      <span class="date-label" id="today-label"></span>
+    </div>
+
+    <div class="progress-card">
+      <div class="progress-ring-wrap">
+        <svg class="progress-ring" width="140" height="140" viewBox="0 0 140 140">
+          <circle class="ring-bg" cx="70" cy="70" r="58"/>
+          <circle class="ring-fill" id="ring-fill" cx="70" cy="70" r="58"/>
+        </svg>
+        <div class="ring-label">
+          <span id="pct-number">0</span>
+          <span class="pct-sign">%</span>
+        </div>
+      </div>
+      <div class="progress-stats">
+        <div class="stat">
+          <span id="stat-done">0</span>
+          <label>Done</label>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+          <span id="stat-total">0</span>
+          <label>Total</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="quote-card">
+      <div class="quote-tag" id="quote-tag">&#8212;</div>
+      <p class="quote-text" id="quote-text">Add tasks to start tracking your day.</p>
+    </div>
+
+    <button class="btn-small" id="btn-end-day">End Day &amp; Save to History</button>
+  </div>
+
+  <!-- TAB: DAILY -->
+  <div id="tab-daily" class="tab-content">
+    <div class="section-header">
+      <h2>Today's Tasks</h2>
+      <button class="add-btn" id="btn-add-daily">+ Add</button>
+    </div>
+    <ul class="task-list" id="daily-list"></ul>
+    <p class="empty-msg" id="daily-empty">No tasks yet.</p>
+    <button class="btn-small secondary" id="btn-load-fixed">Load Fixed Routine</button>
+  </div>
+
+  <!-- TAB: FIXED -->
+  <div id="tab-fixed" class="tab-content">
+    <div class="section-header">
+      <h2>Fixed Routine</h2>
+      <button class="add-btn" id="btn-add-fixed">+ Add</button>
+    </div>
+    <p class="tab-note">These tasks auto-fill your daily routine.</p>
+    <ul class="task-list" id="fixed-list"></ul>
+    <p class="empty-msg" id="fixed-empty">No fixed tasks yet.</p>
+  </div>
+
+  <!-- TAB: HISTORY -->
+  <div id="tab-history" class="tab-content">
+    <div class="section-header">
+      <h2>History</h2>
+    </div>
+    <ul class="history-list" id="history-list"></ul>
+    <p class="empty-msg" id="history-empty">No history yet. End a day to record it.</p>
+  </div>
+
+  <!-- MODAL -->
+  <div id="modal-overlay" class="modal-overlay hidden">
+    <div class="modal">
+      <h3 id="modal-title">Add Task</h3>
+
+      <label class="field-label">Task Name</label>
+      <input type="text" id="modal-input" class="modal-input" placeholder="Task name&hellip;" maxlength="80" />
+
+      <div class="reminder-section">
+        <div class="reminder-toggle-row">
+          <label class="field-label" for="reminder-toggle">Set Reminder</label>
+          <label class="toggle-switch">
+            <input type="checkbox" id="reminder-toggle" />
+            <span class="toggle-track"></span>
+          </label>
+        </div>
+
+        <div id="reminder-fields" class="reminder-fields hidden">
+          <label class="field-label">Time</label>
+          <input type="time" id="reminder-time" class="modal-input" />
+
+          <label class="field-label">Ringtone</label>
+          <div class="ringtone-grid" id="ringtone-grid">
+            <button class="ringtone-btn active" data-tone="gentle" type="button">
+              <span class="tone-icon">&#128276;</span><span>Gentle</span>
+            </button>
+            <button class="ringtone-btn" data-tone="classic" type="button">
+              <span class="tone-icon">&#127925;</span><span>Classic</span>
+            </button>
+            <button class="ringtone-btn" data-tone="digital" type="button">
+              <span class="tone-icon">&#128241;</span><span>Digital</span>
+            </button>
+            <button class="ringtone-btn" data-tone="chime" type="button">
+              <span class="tone-icon">&#127926;</span><span>Chime</span>
+            </button>
+            <button class="ringtone-btn" data-tone="urgent" type="button">
+              <span class="tone-icon">&#9889;</span><span>Urgent</span>
+            </button>
+          </div>
+          <button class="preview-btn" id="btn-preview-tone" type="button">&#9654; Preview</button>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-secondary" id="modal-cancel">Cancel</button>
+        <button class="btn-primary" id="modal-save">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- App Scripts -->
+  <script src="quotes.js"></script>
+  <script src="storage.js"></script>
+  <script src="ringtones.js"></script>
+  <script src="app.js"></script>
+
+  <!-- Service Worker Registration — MUST be last -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('sw.js')
+          .then(function (reg) {
+            console.log('SW registered, scope:', reg.scope);
+          })
+          .catch(function (err) {
+            console.error('SW registration failed:', err);
+          });
+      });
+    }
+  </script>
+
+</body>
+</html>
