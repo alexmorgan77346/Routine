@@ -1,12 +1,9 @@
-// OneSignal Service Worker
-importScripts('https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js');
-
 // ============================================================
 //  sw.js — Service Worker
 //  Caches all app assets for offline + PWA install
 // ============================================================
 
-const CACHE = 'routine-v4';
+const CACHE = 'routine-v6';
 
 const ASSETS = [
   './',
