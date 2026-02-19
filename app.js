@@ -313,42 +313,82 @@ modalSave.addEventListener('click', () => {
   scheduleAllReminders();
 });
 
-// ── Reminder Scheduler ───────────────────────────────────────
+// ── Reminder Scheduler (OneSignal) ──────────────────────────
+// Schedules push notifications via OneSignal so reminders fire
+// even when the app is closed or the phone is locked.
+
 function scheduleAllReminders() {
+  // Clear old setTimeout fallbacks
   reminderTimers.forEach(id => clearTimeout(id));
   reminderTimers = [];
 
-  const now = new Date();
-
   dailyTasks.forEach(task => {
     if (!task.reminder || task.done) return;
-
-    const parts = task.reminder.time.split(':');
-    const fireAt = new Date();
-    fireAt.setHours(parseInt(parts[0]), parseInt(parts[1]), 0, 0);
-
-    const msUntil = fireAt - now;
-    if (msUntil <= 0) return;
-
-    const id = setTimeout(() => triggerReminder(task), msUntil);
-    reminderTimers.push(id);
+    scheduleOneReminder(task);
   });
 }
 
-function triggerReminder(task) {
+function scheduleOneReminder(task) {
+  const parts = task.reminder.time.split(':');
+  const fireAt = new Date();
+  fireAt.setHours(parseInt(parts[0]), parseInt(parts[1]), 0, 0);
+
+  const now = new Date();
+  const msUntil = fireAt - now;
+
+  // Already passed today — skip
+  if (msUntil <= 0) return;
+
+  // ── OneSignal Push (works when app is closed / phone locked) ──
+  if (window.OneSignalDeferred) {
+    OneSignalDeferred.push(async function(OneSignal) {
+      try {
+        const isSubscribed = await OneSignal.User.PushSubscription.optedIn;
+        if (!isSubscribed) {
+          await OneSignal.Notifications.requestPermission();
+        }
+
+        // Schedule the push notification at exact fire time
+        await OneSignal.Notifications.create({
+          contents: { en: task.name },
+          headings: { en: '⏰ Routine Reminder' },
+          send_after: fireAt.toISOString(),
+          // Store tone in data so SW can use it
+          data: { tone: task.reminder.tone || 'gentle', taskId: task.id },
+        });
+
+        console.log('Reminder scheduled via OneSignal:', task.name, 'at', fireAt);
+      } catch (err) {
+        console.warn('OneSignal schedule failed, using setTimeout fallback:', err);
+        fallbackReminder(task, msUntil);
+      }
+    });
+  } else {
+    // Fallback if OneSignal not loaded
+    fallbackReminder(task, msUntil);
+  }
+}
+
+function fallbackReminder(task, msUntil) {
+  // setTimeout only works while app is open
+  const id = setTimeout(() => triggerReminderLocally(task), msUntil);
+  reminderTimers.push(id);
+}
+
+function triggerReminderLocally(task) {
+  // Play sound (app must be open for this)
   playRingtone(task.reminder.tone || 'gentle');
 
   if ('Notification' in window && Notification.permission === 'granted') {
-    new Notification('Routine Reminder', {
+    new Notification('⏰ Routine Reminder', {
       body: task.name,
-      icon: 'icons/icon-192.png',
     });
   } else {
     setTimeout(() => alert('Reminder: ' + task.name), 300);
   }
 }
 
-// Re-schedule on tab return
+// Re-schedule when user returns to app tab
 document.addEventListener('visibilitychange', () => {
   if (!document.hidden) scheduleAllReminders();
 });
